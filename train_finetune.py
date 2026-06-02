@@ -1,16 +1,20 @@
+import json
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from pathlib import Path
 from torchvision import datasets, transforms
 from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
 from torch.utils.data import DataLoader
 
 
+
 DATASET_DIR = Path("dataset")
-WEIGHTS_DIR = Path("weights")
-WEIGHTS_DIR.mkdir(exist_ok=True)
+
+EXPERIMENT_DIR = Path("experiments") / "efficientnet_b0"
+EXPERIMENT_DIR.mkdir(parents=True, exist_ok=True)
 
 BATCH_SIZE = 16
 EPOCHS = 15
@@ -70,6 +74,7 @@ val_loader = DataLoader(
     shuffle=False
 )
 
+
 print("Классы:", train_dataset.classes)
 print("Train images:", len(train_dataset))
 print("Val images:", len(val_dataset))
@@ -79,35 +84,38 @@ print("Device:", DEVICE)
 weights = EfficientNet_B0_Weights.DEFAULT
 model = efficientnet_b0(weights=weights)
 
-
 for param in model.parameters():
     param.requires_grad = False
 
-
 for param in model.features[-2:].parameters():
     param.requires_grad = True
-
 
 model.classifier[1] = nn.Linear(
     in_features=model.classifier[1].in_features,
     out_features=NUM_CLASSES
 )
 
-
 for param in model.classifier.parameters():
     param.requires_grad = True
-
 
 model = model.to(DEVICE)
 
 
-criterion = nn.CrossEntropyLoss()
 
+criterion = nn.CrossEntropyLoss()
 
 optimizer = optim.Adam(
     filter(lambda p: p.requires_grad, model.parameters()),
     lr=LEARNING_RATE
 )
+
+
+history = {
+    "train_loss": [],
+    "train_accuracy": [],
+    "val_loss": [],
+    "val_accuracy": []
+}
 
 
 def evaluate(model, dataloader):
@@ -137,8 +145,8 @@ def evaluate(model, dataloader):
     return avg_loss, accuracy
 
 
-best_val_accuracy = 0.0
 
+best_val_accuracy = 0.0
 
 for epoch in range(EPOCHS):
     model.train()
@@ -171,6 +179,11 @@ for epoch in range(EPOCHS):
 
     val_loss, val_accuracy = evaluate(model, val_loader)
 
+    history["train_loss"].append(train_loss)
+    history["train_accuracy"].append(train_accuracy)
+    history["val_loss"].append(val_loss)
+    history["val_accuracy"].append(val_accuracy)
+
     print(
         f"Epoch [{epoch + 1}/{EPOCHS}] "
         f"Train Loss: {train_loss:.4f} "
@@ -189,11 +202,17 @@ for epoch in range(EPOCHS):
                 "classes": train_dataset.classes,
                 "val_accuracy": best_val_accuracy
             },
-            WEIGHTS_DIR / "best_model.pth"
+            EXPERIMENT_DIR / "best_model.pth"
         )
 
         print(f"Лучшая модель сохранена. Val Acc: {best_val_accuracy:.4f}")
 
 
+with open(EXPERIMENT_DIR / "history.json", "w", encoding="utf-8") as file:
+    json.dump(history, file, indent=4, ensure_ascii=False)
+
+
 print("Дообучение завершено.")
 print(f"Лучшая Val Accuracy: {best_val_accuracy:.4f}")
+print(f"История обучения сохранена в: {EXPERIMENT_DIR / 'history.json'}")
+print(f"Лучшая модель сохранена в: {EXPERIMENT_DIR / 'best_model.pth'}")
