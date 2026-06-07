@@ -4,7 +4,15 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
-EXPERIMENT_NAME = "efficientnet_b0"
+EXPERIMENT_NAME = "resnet50"
+
+MODEL_TITLES = {
+    "efficientnet_b0": "EfficientNet-B0",
+    "resnet50": "ResNet-50",
+    "vit_b_16": "ViT-Base"
+}
+
+MODEL_TITLE = MODEL_TITLES.get(EXPERIMENT_NAME, EXPERIMENT_NAME)
 
 HISTORY_PATH = Path("experiments") / EXPERIMENT_NAME / "history.json"
 PLOTS_DIR = Path("plots")
@@ -25,7 +33,7 @@ plt.plot(epochs, history["train_loss"], marker="o", label="Train Loss")
 plt.plot(epochs, history["val_loss"], marker="o", label="Validation Loss")
 plt.xlabel("Эпоха")
 plt.ylabel("Loss")
-plt.title("Динамика функции потерь EfficientNet-B0")
+plt.title(f"Динамика функции потерь {MODEL_TITLE}")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
@@ -40,7 +48,7 @@ plt.plot(epochs, history["train_accuracy"], marker="o", label="Train Accuracy")
 plt.plot(epochs, history["val_accuracy"], marker="o", label="Validation Accuracy")
 plt.xlabel("Эпоха")
 plt.ylabel("Accuracy")
-plt.title("Динамика точности EfficientNet-B0")
+plt.title(f"Динамика точности {MODEL_TITLE}")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()

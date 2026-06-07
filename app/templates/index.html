@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Распознавание архитектурных объектов</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="page">
+    <div class="card">
+        <h1>AI-система распознавания архитектурных объектов</h1>
+
+        <p class="subtitle">
+            Загрузите изображение историко-архитектурного объекта города Пскова.
+            Система определит наиболее вероятный объект с помощью модели ResNet-50.
+        </p>
+
+        <form action="/predict" method="post" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="file" accept="image/*" required>
+            <button type="submit">Распознать объект</button>
+        </form>
+
+        {% if error %}
+            <div class="error">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        {% if prediction %}
+            <div class="result">
+                <h2>Результат распознавания</h2>
+                {% if image_url %}
+                    <div class="image-preview">
+                        <img src="{{ image_url }}" alt="Загруженное изображение">
+                    </div>
+                {% endif %}
+
+                <div class="main-result">
+                    <span class="label">Объект:</span>
+                    <span class="value">{{ prediction.class }}</span>
+                </div>
+
+                <div class="info-grid">
+                    <div>
+                        <span class="label">Модель:</span>
+                        <span class="value">{{ prediction.model }}ResNet-50</span>
+                    </div>
+
+                    <div>
+                        <span class="label">Уверенность:</span>
+                        <span class="value">{{ prediction.confidence }}%</span>
+                    </div>
+
+                    <div>
+                        <span class="label">Файл:</span>
+                        <span class="value">{{ filename }}</span>
+                    </div>
+                </div>
+
+                <h3>Top-3 предсказания</h3>
+
+                <div class="top-list">
+                    {% for item in prediction.top_predictions %}
+                        <div class="top-item">
+                            <div class="top-name">
+                                {{ loop.index }}. {{ item.class }}
+                            </div>
+                            <div class="top-confidence">
+                                {{ item.confidence }}%
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>
