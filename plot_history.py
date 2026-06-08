@@ -4,7 +4,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 
-EXPERIMENT_NAME = "resnet50"
+EXPERIMENT_NAME = "vit_b_16"
 
 MODEL_TITLES = {
     "efficientnet_b0": "EfficientNet-B0",
